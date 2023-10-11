@@ -55,32 +55,37 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     public int process(List<Update> updates) {
         updates.forEach(update -> {
             logger.info("Processing update: {}", update);
-            long chatId = update.message().chat().id();
-            String message = update.message().text();
-            if (message.equals(null)) {
-                logger.info("Null message was sent", chatId);
+
+            if (update.message()==null) {
+                logger.info("Null message was sent");
                 return;
             }
-            if (message.equals("/start")) {
+            long chatId = update.message().chat().id();
+            String messageReceived = update.message().text();
+            if (("/start").equals(messageReceived)) {
                 logger.info("Start message", chatId);
                 startMessageReceived(chatId, update.message().chat().firstName());
+                return;
             }
-            Matcher matcher = pattern.matcher(message);
-            if (!matcher.matches()) {
+
+           Matcher matcher = pattern.matcher(messageReceived);
+            if (matcher.matches()) {
+                String date = matcher.group(1);
+                LocalDateTime taskTime = LocalDateTime.parse(date, dateTimeFormatter);
+                if (taskTime.isBefore(LocalDateTime.now())) {
+                    sendMessage(chatId, "Your entering date is before date now");
+                    logger.info("Date is before now", chatId);
+                    return;
+                }
+                String notification = matcher.group(3);
+                scheduleTask.saveNotificationToDb(chatId, notification, taskTime);
+                logger.info("Notification was saved into DB", chatId);
+            }
+            else {
                 logger.info("Invalid format", chatId);
                 sendMessage(chatId,"Invalid format");
                 return;
             }
-            String date = matcher.group(1);
-            LocalDateTime taskTime = LocalDateTime.parse(date, dateTimeFormatter);
-            if (taskTime.isBefore(LocalDateTime.now())) {
-                sendMessage(chatId, "Your entering date is before date now");
-                logger.info("Date is before now", chatId);
-                return;
-            }
-            String notification = matcher.group(3);
-            scheduleTask.saveNotificationToDb(chatId, notification, taskTime);
-            logger.info("Notification was saved into DB", chatId);
         });
         return UpdatesListener.CONFIRMED_UPDATES_ALL;
     }
