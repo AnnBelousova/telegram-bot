@@ -63,7 +63,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
             long chatId = update.message().chat().id();
             String messageReceived = update.message().text();
             if (("/start").equals(messageReceived)) {
-                logger.info("Start message", chatId);
+                logger.info("Start message {}", chatId);
                 startMessageReceived(chatId, update.message().chat().firstName());
                 return;
             }
@@ -74,7 +74,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                 LocalDateTime taskTime = LocalDateTime.parse(date, dateTimeFormatter);
                 if (taskTime.isBefore(LocalDateTime.now())) {
                     sendMessage(chatId, "Your entering date is before date now");
-                    logger.info("Date is before now", chatId);
+                    logger.info("Date is before now {}", chatId);
                     return;
                 }
                 String notification = matcher.group(3);
@@ -82,7 +82,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                 logger.info("Notification was saved into DB", chatId);
             }
             else {
-                logger.info("Invalid format", chatId);
+                logger.info("Invalid format {}", chatId);
                 sendMessage(chatId,"Invalid format");
                 return;
             }
